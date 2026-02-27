@@ -4,44 +4,83 @@
  * Replaces the module-level Map singleton previously in plugin-loader.ts.
  * The registry is created in the composition root and passed to consumers,
  * enabling isolated testing and multiple registry instances.
+ *
+ * Supports lazy registration: a plugin can be registered with just a name
+ * and a loader function. The loader is called on first access via getOrLoad().
  */
 
 import type { Plugin } from "./plugin-interface.js";
 
 export interface PluginRegistry {
-  /** Register a plugin. Overwrites if name already exists. */
+  /** Register a plugin eagerly. Overwrites if name already exists (including lazy). */
   register(plugin: Plugin): void;
-  /** Get a plugin by name. */
+  /** Register a lazy loader. No-op if the name is already eagerly loaded. */
+  registerLazy(name: string, loader: () => Promise<Plugin>): void;
+  /** Get an eagerly loaded plugin by name. */
   get(name: string): Plugin | undefined;
-  /** Get all registered plugins. */
+  /** Get a plugin, loading it lazily if needed. */
+  getOrLoad(name: string): Promise<Plugin | undefined>;
+  /** Get all eagerly loaded plugins. */
   getAll(): Plugin[];
-  /** Check if a plugin is registered. */
+  /** Get all registered names (eager + lazy). */
+  getAllNames(): string[];
+  /** Check if a plugin is registered (eager or lazy). */
   has(name: string): boolean;
-  /** Remove all registered plugins. */
+  /** Check if a plugin is registered as lazy (not yet loaded). */
+  isLazy(name: string): boolean;
+  /** Remove all registered plugins (eager and lazy). */
   clear(): void;
 }
 
 /**
- * Create an in-memory plugin registry.
+ * Create an in-memory plugin registry with lazy loading support.
  */
 export function createPluginRegistry(): PluginRegistry {
-  const map = new Map<string, Plugin>();
+  const loaded = new Map<string, Plugin>();
+  const lazy = new Map<string, () => Promise<Plugin>>();
 
   return {
     register(plugin) {
-      map.set(plugin.descriptor.name, plugin);
+      const name = plugin.descriptor.name;
+      loaded.set(name, plugin);
+      lazy.delete(name);
+    },
+    registerLazy(name, loader) {
+      // Don't overwrite an eagerly loaded plugin
+      if (loaded.has(name)) return;
+      lazy.set(name, loader);
     },
     get(name) {
-      return map.get(name);
+      return loaded.get(name);
+    },
+    async getOrLoad(name) {
+      const existing = loaded.get(name);
+      if (existing) return existing;
+
+      const loader = lazy.get(name);
+      if (!loader) return undefined;
+
+      const plugin = await loader();
+      loaded.set(name, plugin);
+      lazy.delete(name);
+      return plugin;
     },
     getAll() {
-      return Array.from(map.values());
+      return Array.from(loaded.values());
+    },
+    getAllNames() {
+      const names = new Set([...loaded.keys(), ...lazy.keys()]);
+      return Array.from(names).sort();
     },
     has(name) {
-      return map.has(name);
+      return loaded.has(name) || lazy.has(name);
+    },
+    isLazy(name) {
+      return lazy.has(name) && !loaded.has(name);
     },
     clear() {
-      map.clear();
+      loaded.clear();
+      lazy.clear();
     },
   };
 }

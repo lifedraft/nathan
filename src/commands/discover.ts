@@ -18,20 +18,32 @@ export class DiscoverCommand extends Command {
   });
 
   async execute(): Promise<void> {
-    const plugins = registry.getAll();
+    const loadedPlugins = registry.getAll();
+    const allNames = registry.getAllNames();
+
+    const loaded = loadedPlugins.map((p) => ({
+      name: p.descriptor.name,
+      displayName: p.descriptor.displayName,
+      description: p.descriptor.description,
+      version: p.descriptor.version,
+      resources: p.descriptor.resources.map((r) => ({
+        name: r.name,
+        operations: r.operations.map((o) => o.name),
+      })),
+      authenticated: p.descriptor.credentials.length > 0,
+      loaded: true,
+    }));
+
+    const loadedNames = new Set(loadedPlugins.map((p) => p.descriptor.name));
+    const lazyEntries = allNames
+      .filter((name) => !loadedNames.has(name))
+      .map((name) => ({
+        name,
+        loaded: false,
+      }));
 
     const result = {
-      plugins: plugins.map((p) => ({
-        name: p.descriptor.name,
-        displayName: p.descriptor.displayName,
-        description: p.descriptor.description,
-        version: p.descriptor.version,
-        resources: p.descriptor.resources.map((r) => ({
-          name: r.name,
-          operations: r.operations.map((o) => o.name),
-        })),
-        authenticated: p.descriptor.credentials.length > 0,
-      })),
+      plugins: [...loaded, ...lazyEntries],
     };
 
     printOutput(this.human ? result.plugins : result, { human: this.human });

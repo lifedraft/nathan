@@ -28,7 +28,7 @@ export class RunCommand extends Command {
   params = Option.Proxy();
 
   async execute(): Promise<void> {
-    const plugin = registry.get(this.service);
+    const plugin = await registry.getOrLoad(this.service);
     if (!plugin) {
       printOutput({
         error: {

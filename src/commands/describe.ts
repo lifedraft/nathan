@@ -24,7 +24,7 @@ export class DescribeCommand extends Command {
   });
 
   async execute(): Promise<void> {
-    const plugin = registry.get(this.service);
+    const plugin = await registry.getOrLoad(this.service);
     if (!plugin) {
       printOutput({
         error: {

@@ -22,6 +22,7 @@ import { registry } from "./core/registry-instance.js";
 import { loadPluginsFromDir, registerLoaderStrategy } from "./core/plugin-loader.js";
 import { createPluginCommands } from "./commands/dynamic.js";
 import { loadN8nNodeFromPath, validateModulePath } from "./n8n-compat/loader.js";
+import { discoverN8nNodes } from "./n8n-compat/discovery.js";
 import {
   registerCredentialIntrospectionStrategy,
   registerCredentialExpressionResolver,
@@ -68,6 +69,24 @@ try {
   const msg = err instanceof Error ? err.message : String(err);
   console.error(JSON.stringify({ error: { code: "STARTUP_ERROR", message: `Failed to load plugins: ${msg}` } }));
   process.exit(1);
+}
+
+// ---------------------------------------------------------------------------
+// Auto-discover n8n nodes (lazy registration)
+// ---------------------------------------------------------------------------
+
+try {
+  const discovered = discoverN8nNodes();
+  for (const entry of discovered) {
+    if (!registry.has(entry.serviceName)) {
+      registry.registerLazy(entry.serviceName, () =>
+        loadN8nNodeFromPath(entry.modulePath),
+      );
+    }
+  }
+} catch (err) {
+  const msg = err instanceof Error ? err.message : String(err);
+  console.error(`[nathan] Warning: n8n node auto-discovery failed: ${msg}`);
 }
 
 // ---------------------------------------------------------------------------
