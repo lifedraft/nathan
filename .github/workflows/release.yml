@@ -45,7 +45,7 @@ jobs:
             bun build src/index.ts --compile --target="${target}" --outfile "release/nathan"
 
             if [[ "${label}" == windows_* ]]; then
-              mv release/nathan release/nathan.exe
+              # Bun outputs .exe directly for Windows targets
               (cd release && zip "../release/nathan_${label}.zip" nathan.exe)
               rm release/nathan.exe
             else
