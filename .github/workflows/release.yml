@@ -1,0 +1,135 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: oven-sh/setup-bun@v2
+
+      - name: Install dependencies
+        run: bun install
+
+      - name: Extract version
+        id: version
+        run: echo "version=${GITHUB_REF#refs/tags/v}" >> "$GITHUB_OUTPUT"
+
+      - name: Build all targets
+        run: |
+          mkdir -p release
+
+          targets=(
+            "bun-linux-x64:linux_amd64"
+            "bun-linux-arm64:linux_arm64"
+            "bun-darwin-x64:darwin_amd64"
+            "bun-darwin-arm64:darwin_arm64"
+            "bun-windows-x64:windows_amd64"
+          )
+
+          for entry in "${targets[@]}"; do
+            target="${entry%%:*}"
+            label="${entry##*:}"
+
+            echo "Building ${target} -> ${label}"
+            bun build src/index.ts --compile --target="${target}" --outfile "release/nathan"
+
+            if [[ "${label}" == windows_* ]]; then
+              mv release/nathan release/nathan.exe
+              (cd release && zip "../release/nathan_${label}.zip" nathan.exe)
+              rm release/nathan.exe
+            else
+              chmod +x release/nathan
+              tar -czf "release/nathan_${label}.tar.gz" -C release nathan
+              rm release/nathan
+            fi
+          done
+
+      - name: Generate checksums
+        run: |
+          cd release
+          sha256sum nathan_*.{tar.gz,zip} > checksums.txt
+
+      - name: Create GitHub Release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release create "${{ github.ref_name }}" \
+            --title "${{ github.ref_name }}" \
+            --generate-notes \
+            release/nathan_*.tar.gz \
+            release/nathan_*.zip \
+            release/checksums.txt
+
+      - name: Update Homebrew formula
+        env:
+          HOMEBREW_TAP_GITHUB_TOKEN: ${{ secrets.HOMEBREW_TAP_GITHUB_TOKEN }}
+        run: |
+          VERSION="${{ steps.version.outputs.version }}"
+          DARWIN_AMD64_SHA=$(grep darwin_amd64 release/checksums.txt | awk '{print $1}')
+          DARWIN_ARM64_SHA=$(grep darwin_arm64 release/checksums.txt | awk '{print $1}')
+          LINUX_AMD64_SHA=$(grep linux_amd64 release/checksums.txt | awk '{print $1}')
+          LINUX_ARM64_SHA=$(grep linux_arm64 release/checksums.txt | awk '{print $1}')
+
+          REPO_URL="https://github.com/lifedraft/nathan/releases/download/v${VERSION}"
+
+          cat > formula.rb << FORMULA
+          class Nathan < Formula
+            desc "Pluggable CLI that turns popular services into simple, scriptable commands"
+            homepage "https://github.com/lifedraft/nathan"
+            version "${VERSION}"
+            license "MIT"
+
+            on_macos do
+              if Hardware::CPU.arm?
+                url "${REPO_URL}/nathan_darwin_arm64.tar.gz"
+                sha256 "${DARWIN_ARM64_SHA}"
+              else
+                url "${REPO_URL}/nathan_darwin_amd64.tar.gz"
+                sha256 "${DARWIN_AMD64_SHA}"
+              end
+            end
+
+            on_linux do
+              if Hardware::CPU.arm?
+                url "${REPO_URL}/nathan_linux_arm64.tar.gz"
+                sha256 "${LINUX_ARM64_SHA}"
+              else
+                url "${REPO_URL}/nathan_linux_amd64.tar.gz"
+                sha256 "${LINUX_AMD64_SHA}"
+              end
+            end
+
+            def install
+              bin.install "nathan"
+            end
+
+            test do
+              system "#{bin}/nathan", "discover"
+            end
+          end
+          FORMULA
+
+          # Remove leading whitespace from heredoc
+          sed -i 's/^          //' formula.rb
+
+          # Clone tap repo and push updated formula
+          git clone "https://x-access-token:${HOMEBREW_TAP_GITHUB_TOKEN}@github.com/lifedraft/homebrew-tap.git" tap
+          mkdir -p tap/Formula
+          cp formula.rb tap/Formula/nathan.rb
+          cd tap
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add Formula/nathan.rb
+          git commit -m "nathan ${VERSION}"
+          git push
