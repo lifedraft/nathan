@@ -14,10 +14,10 @@ Installing as a global package pulls in nathan and all 400+ n8n integrations in 
 
 ```bash
 # bun
-bun install -g nathan
+bun install -g nathan-cli
 
 # npm
-npm install -g nathan
+npm install -g nathan-cli
 ```
 
 ### Homebrew
