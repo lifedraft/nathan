@@ -11,12 +11,7 @@ import {
 } from '../core/credential-resolver.js';
 import { parseFlags, extractLimit } from '../core/flag-parser.js';
 import { validateParameters } from '../core/parameter-validator.js';
-import type {
-  Plugin,
-  Operation,
-  ResolvedCredentials,
-  PluginDescriptor,
-} from '../core/plugin-interface.js';
+import type { Plugin, Operation } from '../core/plugin-interface.js';
 import { printOutput, printError } from './output.js';
 
 /** Injectable credential functions (for testing without mock.module). */
