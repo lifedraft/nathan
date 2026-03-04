@@ -127,11 +127,11 @@ Nathan auto-discovers all 400+ nodes from `n8n-nodes-base` at runtime — no con
 
 If you installed via `npm install -g` or `bun install -g`, the n8n packages are already included as peer dependencies. Run `nathan discover` to see all available services.
 
-You can also point to individual n8n nodes with a two-line YAML manifest in `plugins/`:
+To use a custom n8n node (not part of `n8n-nodes-base`), point to it with a two-line YAML manifest in `plugins/`:
 
 ```yaml
 type: n8n-compat
-module: n8n-nodes-base/dist/nodes/Github/Github.node.js
+module: your-custom-n8n-package/dist/nodes/MyNode/MyNode.node.js
 ```
 
 ### Plugin directories
