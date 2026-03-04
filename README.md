@@ -1,4 +1,4 @@
-# Nathan
+# nathan-cli
 
 A pluggable CLI that turns popular services into simple, scriptable commands. 400+ integrations out of the box via n8n's node ecosystem, with a consistent interface across all of them.
 
@@ -151,6 +151,10 @@ Set `NATHAN_PLUGIN_DIRS` (colon-separated paths) to load plugins from additional
 | `NATHAN_PLUGIN_DIRS` | Additional plugin directories (colon-separated) |
 | `NATHAN_DEBUG` | Enable verbose logging |
 | `NATHAN_ALLOW_HTTP` | Allow HTTP URLs when credentials are present (default: HTTPS only) |
+
+## Why "nathan"?
+
+The name is a phonetic play on **n8n** — say "n-eight-n" fast and you get "nathan". Since this CLI gives n8n's 400+ service nodes a proper command-line interface, the name felt right.
 
 ## License
 
