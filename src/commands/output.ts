@@ -148,4 +148,3 @@ function formatObject(obj: Record<string, unknown>): string {
 
   return lines.join('\n');
 }
-

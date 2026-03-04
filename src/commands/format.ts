@@ -11,7 +11,8 @@ const richLine = Array(MAX_LINE_LENGTH).fill('━');
 for (let t = 0; t <= 23; ++t) richLine[MAX_LINE_LENGTH - 1 - t] = chalk.ansi256(232 + t)('━');
 
 export const header = (str: string): string => {
-  const tail = str.length < MAX_LINE_LENGTH - 5 ? ` ${richLine.slice(str.length + 5).join('')}` : ':';
+  const tail =
+    str.length < MAX_LINE_LENGTH - 5 ? ` ${richLine.slice(str.length + 5).join('')}` : ':';
   return chalk.bold(`━━━ ${str}${tail}`);
 };
 

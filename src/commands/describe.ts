@@ -29,7 +29,12 @@ function formatUsageLine(service: string, resource: string, op: Operation): stri
   return `  ${bold('$ ')}${parts.join(' ')}`;
 }
 
-function formatOperationLines(lines: string[], service: string, resourceName: string, ops: Operation[]): void {
+function formatOperationLines(
+  lines: string[],
+  service: string,
+  resourceName: string,
+  ops: Operation[],
+): void {
   for (const op of ops) {
     lines.push(`  ${bold(op.name)}  ${op.description}`);
     lines.push(formatUsageLine(service, resourceName, op));
@@ -114,7 +119,10 @@ function buildAuthInfo(descriptor: PluginDescriptor) {
   };
 }
 
-function printError(error: { code: string; message: string; [key: string]: unknown }, json: boolean): void {
+function printError(
+  error: { code: string; message: string; [key: string]: unknown },
+  json: boolean,
+): void {
   if (json) {
     printOutput({ error });
   } else {
