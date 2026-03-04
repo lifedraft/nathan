@@ -24,6 +24,7 @@ jobs:
       - name: Build
         run: |
           bun run build
+          chmod +x dist/nathan
           mkdir -p release
           cp dist/nathan release/nathan
           chmod +x release/nathan

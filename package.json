@@ -1,6 +1,6 @@
 {
   "name": "nathan-cli",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "license": "MIT",
   "type": "module",
   "bin": {
@@ -12,7 +12,7 @@
   ],
   "scripts": {
     "dev": "bun run --watch src/index.ts",
-    "build": "bun build src/index.ts --outfile dist/nathan --target bun",
+    "build": "bunx esbuild src/index.ts --bundle --outfile=dist/nathan --platform=node --format=esm --target=node20 --packages=external --external:bun",
     "prepublishOnly": "bun run build",
     "test": "bun test",
     "lint": "oxlint src/",
