@@ -7,6 +7,7 @@
 
 import { join } from 'node:path';
 
+import { plugin as bunPlugin } from 'bun';
 import { Cli, Builtins } from 'clipanion';
 
 import { DescribeCommand } from './commands/describe.js';
@@ -34,9 +35,7 @@ import { loadN8nNodeFromPath, validateModulePath } from './n8n-compat/loader.js'
 // This replaces the old postinstall script that copied a stub to node_modules.
 // ---------------------------------------------------------------------------
 
-import { plugin } from 'bun';
-
-plugin({
+bunPlugin({
   name: 'n8n-core-stub',
   setup(build) {
     build.module('n8n-core', () => ({
