@@ -74,7 +74,9 @@ export class PluginListCommand extends Command {
     }
 
     if (loadedPlugins.length === 0 && availableNames.length === 0) {
-      console.log('No plugins found. Install a plugin with: nathan plugin install <name>');
+      console.log(
+        'No plugins found. Add a YAML plugin to ~/.nathan/plugins/ or install n8n-nodes-base.',
+      );
       return;
     }
 

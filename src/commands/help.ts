@@ -24,7 +24,6 @@ export class HelpCommand extends Command {
       `    ${bin} <service> <resource> <operation> [flags]  Run an operation`,
       `    ${bin} describe <service> [resource] [operation] Inspect a service`,
       `    ${bin} run <service> <resource> <operation>      Run (explicit form)`,
-      `    ${bin} plugin install <name>                     Install a plugin`,
       `    ${bin} plugin list                               List all plugins`,
       '',
       bold('  Flags'),

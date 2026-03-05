@@ -91,7 +91,7 @@ describe('plugin list — empty state', () => {
   test('prints "No plugins found" when registry is empty', async () => {
     await run();
     expect(logged()).toContain('No plugins found');
-    expect(logged()).toContain('nathan plugin install');
+    expect(logged()).toContain('No plugins found');
   });
 });
 

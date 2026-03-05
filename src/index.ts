@@ -16,7 +16,6 @@ import { Cli, Builtins } from 'clipanion';
 import { DescribeCommand } from './commands/describe.js';
 import { createPluginCommands, createLazyPluginCommand } from './commands/dynamic.js';
 import { HelpCommand } from './commands/help.js';
-import { PluginInstallCommand } from './commands/plugin/install.js';
 import { PluginListCommand } from './commands/plugin/list.js';
 import { RunCommand } from './commands/run.js';
 import { loadConfig } from './core/config.js';
@@ -137,7 +136,6 @@ cli.register(Builtins.VersionCommand);
 // Static commands
 cli.register(DescribeCommand);
 cli.register(RunCommand);
-cli.register(PluginInstallCommand);
 cli.register(PluginListCommand);
 
 // Dynamic commands from loaded plugins (eagerly loaded — full 3-segment paths)
