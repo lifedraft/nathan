@@ -248,6 +248,228 @@ describe('executeDeclarativeRouting', () => {
     }
   });
 
+  test('routes collection child params to query string', async () => {
+    // Simulates the pattern used by Confluence Cloud search:
+    // additionalFields (collection, no routing) → cql (child, routing.request.qs)
+    const desc = makeNodeDescription({
+      properties: [
+        {
+          displayName: 'Resource',
+          name: 'resource',
+          type: 'options',
+          default: 'item',
+          options: [{ name: 'Item', value: 'item' }],
+        },
+        {
+          displayName: 'Operation',
+          name: 'operation',
+          type: 'options',
+          default: 'search',
+          displayOptions: { show: { resource: ['item'] } },
+          options: [
+            {
+              name: 'Search',
+              value: 'search',
+              routing: { request: { method: 'GET', url: '/search' } },
+            },
+          ],
+        },
+        {
+          displayName: 'Additional Fields',
+          name: 'additionalFields',
+          type: 'collection',
+          default: {},
+          displayOptions: { show: { resource: ['item'], operation: ['search'] } },
+          options: [
+            {
+              displayName: 'Query',
+              name: 'query',
+              type: 'string',
+              default: '',
+              routing: { request: { qs: { q: '={{$value}}' } } },
+            },
+            {
+              displayName: 'Format',
+              name: 'format',
+              type: 'string',
+              default: '',
+              routing: { send: { type: 'query', property: 'fmt' } },
+            },
+          ],
+        } as INodeProperties,
+      ],
+    });
+
+    let capturedUrl = '';
+    const originalFetch = globalThis.fetch;
+    globalThis.fetch = mock(async (url: string | URL | Request) => {
+      capturedUrl = String(url);
+      return new Response(JSON.stringify([]), {
+        status: 200,
+        headers: { 'content-type': 'application/json' },
+      });
+    }) as typeof fetch;
+
+    try {
+      const result = await executeDeclarativeRouting({
+        nodeDescription: desc,
+        resource: 'item',
+        operation: 'search',
+        params: { query: 'type=page', format: 'json' },
+        credentials: [],
+      });
+      expect(result.success).toBe(true);
+      expect(capturedUrl).toContain('query=type%3Dpage');
+      expect(capturedUrl).toContain('fmt=json');
+    } finally {
+      globalThis.fetch = originalFetch;
+    }
+  });
+
+  test('routes fixedCollection child params to body', async () => {
+    const desc = makeNodeDescription({
+      properties: [
+        {
+          displayName: 'Resource',
+          name: 'resource',
+          type: 'options',
+          default: 'item',
+          options: [{ name: 'Item', value: 'item' }],
+        },
+        {
+          displayName: 'Operation',
+          name: 'operation',
+          type: 'options',
+          default: 'create',
+          displayOptions: { show: { resource: ['item'] } },
+          options: [
+            {
+              name: 'Create',
+              value: 'create',
+              routing: { request: { method: 'POST', url: '/items' } },
+            },
+          ],
+        },
+        {
+          displayName: 'Fields',
+          name: 'fields',
+          type: 'fixedCollection',
+          default: {},
+          displayOptions: { show: { resource: ['item'], operation: ['create'] } },
+          options: [
+            {
+              displayName: 'Values',
+              name: 'values',
+              values: [
+                {
+                  displayName: 'Title',
+                  name: 'title',
+                  type: 'string',
+                  default: '',
+                  routing: { send: { type: 'body', property: 'title' } },
+                },
+              ],
+            },
+          ],
+        } as INodeProperties,
+      ],
+    });
+
+    let capturedBody = '';
+    const originalFetch = globalThis.fetch;
+    globalThis.fetch = mock(async (_url: string | URL | Request, init?: RequestInit) => {
+      capturedBody = (init?.body as string) ?? '';
+      return new Response(JSON.stringify({ id: 1 }), {
+        status: 200,
+        headers: { 'content-type': 'application/json' },
+      });
+    }) as typeof fetch;
+
+    try {
+      const result = await executeDeclarativeRouting({
+        nodeDescription: desc,
+        resource: 'item',
+        operation: 'create',
+        params: { title: 'New Item' },
+        credentials: [],
+      });
+      expect(result.success).toBe(true);
+      const body = JSON.parse(capturedBody);
+      expect(body.title).toBe('New Item');
+    } finally {
+      globalThis.fetch = originalFetch;
+    }
+  });
+
+  test('ignores collection children without routing', async () => {
+    const desc = makeNodeDescription({
+      properties: [
+        {
+          displayName: 'Resource',
+          name: 'resource',
+          type: 'options',
+          default: 'item',
+          options: [{ name: 'Item', value: 'item' }],
+        },
+        {
+          displayName: 'Operation',
+          name: 'operation',
+          type: 'options',
+          default: 'getAll',
+          displayOptions: { show: { resource: ['item'] } },
+          options: [
+            {
+              name: 'Get All',
+              value: 'getAll',
+              routing: { request: { method: 'GET', url: '/items' } },
+            },
+          ],
+        },
+        {
+          displayName: 'Options',
+          name: 'options',
+          type: 'collection',
+          default: {},
+          displayOptions: { show: { resource: ['item'], operation: ['getAll'] } },
+          options: [
+            {
+              displayName: 'Verbose',
+              name: 'verbose',
+              type: 'boolean',
+              default: false,
+              // No routing — should not appear in qs or body
+            },
+          ],
+        } as INodeProperties,
+      ],
+    });
+
+    let capturedUrl = '';
+    const originalFetch = globalThis.fetch;
+    globalThis.fetch = mock(async (url: string | URL | Request) => {
+      capturedUrl = String(url);
+      return new Response(JSON.stringify([]), {
+        status: 200,
+        headers: { 'content-type': 'application/json' },
+      });
+    }) as typeof fetch;
+
+    try {
+      const result = await executeDeclarativeRouting({
+        nodeDescription: desc,
+        resource: 'item',
+        operation: 'getAll',
+        params: { verbose: true },
+        credentials: [],
+      });
+      expect(result.success).toBe(true);
+      // verbose has no routing, so it should not appear in the URL
+      expect(capturedUrl).toBe('https://api.test.com/items');
+    } finally {
+      globalThis.fetch = originalFetch;
+    }
+  });
+
   test('injects credentials via auth config', async () => {
     const desc = makeNodeDescription();
     let capturedHeaders: Record<string, string> = {};
