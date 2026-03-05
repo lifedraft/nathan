@@ -146,7 +146,7 @@ export class DescribeCommand extends Command {
         {
           code: 'PLUGIN_NOT_FOUND',
           message: `Plugin "${this.service}" not found`,
-          suggestion: "Run 'nathan discover' to see available plugins",
+          suggestion: "Run 'nathan plugin list' to see available plugins",
         },
         {},
       );

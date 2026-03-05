@@ -40,13 +40,13 @@ bun run build
 
 ## How It Works
 
-Every service follows the same pattern: **discover** what's available, **describe** it, then **execute**.
+Every service follows the same pattern: **list** what's available, **describe** it, then **execute**.
 
-### 1. Discover services
+### 1. List available services
 
 ```bash
-nathan discover                 # Human-readable output (default)
-nathan discover --json          # JSON output
+nathan plugin list              # Human-readable output (default)
+nathan plugin list --json       # JSON output
 ```
 
 ### 2. Describe a service
@@ -69,7 +69,7 @@ nathan jsonplaceholder post list --_limit=5
 nathan jsonplaceholder post create --title="Hello" --body="World" --userId=1
 ```
 
-Output is human-readable by default for `discover` and `describe`. Add `--json` for machine-readable JSON. Execution commands (`nathan <service> ...`) output JSON by default — add `--human` for formatted tables. Use `--limit=N` to truncate long result lists.
+Output is human-readable by default for `plugin list` and `describe`. Add `--json` for machine-readable JSON. Execution commands (`nathan <service> ...`) output JSON by default — add `--human` for formatted tables. Use `--limit=N` to truncate long result lists.
 
 ## Authentication
 
@@ -133,7 +133,7 @@ resources:
 
 Nathan auto-discovers all 400+ nodes from `n8n-nodes-base` at runtime — no configuration needed. Nodes are loaded lazily on first use, so startup stays fast.
 
-Install `n8n-nodes-base` and `n8n-workflow` globally (see [Install](#install)) and run `nathan discover` to see all available services.
+Install `n8n-nodes-base` and `n8n-workflow` globally (see [Install](#install)) and run `nathan plugin list` to see all available services.
 
 To use a custom n8n node (not part of `n8n-nodes-base`), point to it with a two-line YAML manifest in `plugins/`:
 

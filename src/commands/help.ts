@@ -22,11 +22,10 @@ export class HelpCommand extends Command {
       bold('  Commands'),
       '',
       `    ${bin} <service> <resource> <operation> [flags]  Run an operation`,
-      `    ${bin} discover                                  List all services`,
       `    ${bin} describe <service> [resource] [operation] Inspect a service`,
       `    ${bin} run <service> <resource> <operation>      Run (explicit form)`,
       `    ${bin} plugin install <name>                     Install a plugin`,
-      `    ${bin} plugin list                               List plugins`,
+      `    ${bin} plugin list                               List all plugins`,
       '',
       bold('  Flags'),
       '',
@@ -35,7 +34,7 @@ export class HelpCommand extends Command {
       `    --version      Print version`,
       `    --help, -h     Show this help`,
       '',
-      `  ${serviceCount} service(s) available. Run ${bold(`${bin} discover`)} to browse.`,
+      `  ${serviceCount} plugin(s) available. Run ${bold(`${bin} plugin list`)} to browse.`,
       '',
     ];
 

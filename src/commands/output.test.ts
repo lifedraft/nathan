@@ -199,10 +199,10 @@ describe('printError', () => {
     printError({
       code: 'NOT_FOUND',
       message: 'Plugin not found',
-      suggestion: "Run 'nathan discover'",
+      suggestion: "Run 'nathan plugin list'",
     });
     expect(stderr()).toContain('Plugin not found');
-    expect(stderr()).toContain("Run 'nathan discover'");
+    expect(stderr()).toContain("Run 'nathan plugin list'");
   });
 
   test('prints hint when provided', () => {

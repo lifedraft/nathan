@@ -51,7 +51,7 @@ export class RunCommand extends Command {
       printError({
         code: 'PLUGIN_NOT_FOUND',
         message: `Plugin "${service}" not found`,
-        suggestion: "Run 'nathan discover' to see available plugins",
+        suggestion: "Run 'nathan plugin list' to see available plugins",
       });
       process.exitCode = 1;
       return;

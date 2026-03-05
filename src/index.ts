@@ -14,7 +14,6 @@ import { plugin as bunPlugin } from 'bun';
 import { Cli, Builtins } from 'clipanion';
 
 import { DescribeCommand } from './commands/describe.js';
-import { DiscoverCommand } from './commands/discover.js';
 import { createPluginCommands, createLazyPluginCommand } from './commands/dynamic.js';
 import { HelpCommand } from './commands/help.js';
 import { PluginInstallCommand } from './commands/plugin/install.js';
@@ -136,7 +135,6 @@ cli.register(HelpCommand);
 cli.register(Builtins.VersionCommand);
 
 // Static commands
-cli.register(DiscoverCommand);
 cli.register(DescribeCommand);
 cli.register(RunCommand);
 cli.register(PluginInstallCommand);
@@ -151,7 +149,7 @@ for (const plugin of registry.getAll()) {
 
 // Lazy commands for plugins that haven't been loaded yet (1-segment catch-all).
 // Skip names that collide with built-in commands to avoid ambiguous routing.
-const RESERVED_COMMANDS = new Set(['run', 'describe', 'discover', 'plugin', 'help', 'version']);
+const RESERVED_COMMANDS = new Set(['run', 'describe', 'plugin', 'help', 'version']);
 for (const name of registry.getAllNames()) {
   if (registry.isLazy(name) && !RESERVED_COMMANDS.has(name)) {
     cli.register(createLazyPluginCommand(name, registry));
